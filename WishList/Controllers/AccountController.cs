@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,8 @@ namespace WishList.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
 
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInUser){
+        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInUser)
+        {
             _userManager = userManager;
             _signInManager = signInUser;
 
@@ -20,7 +22,8 @@ namespace WishList.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Register(){
+        public IActionResult Register()
+        {
 
             return View("Register");
         }
@@ -28,12 +31,32 @@ namespace WishList.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult Register(RegisterViewModel model){
+        public  IActionResult Register(RegisterViewModel model)
+        {
 
-            if(!ModelState.IsValid){
-                return  View("Register", model);
+            if (!ModelState.IsValid)
+            {
+                return View("Register", model);
+
             }
-            return RedirectToAction("Index","Home");
+
+            var result = _userManager.CreateAsync(new ApplicationUser()
+            {
+                UserName = model.Email,
+                Email = model.Email,
+
+            }, model.Password).Result;
+
+            if(!result.Succeeded){
+               foreach(var error in result.Errors){
+                   ModelState.AddModelError("Password", error.Description);
+                   return View(model);
+               }
+            }
+            return RedirectToAction("Index", "Home");
         }
+
+
+
     }
 }
