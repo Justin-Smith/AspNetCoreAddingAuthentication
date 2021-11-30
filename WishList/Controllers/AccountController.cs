@@ -31,7 +31,7 @@ namespace WishList.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public  IActionResult Register(RegisterViewModel model)
+        public IActionResult Register(RegisterViewModel model)
         {
 
             if (!ModelState.IsValid)
@@ -47,15 +47,55 @@ namespace WishList.Controllers
 
             }, model.Password).Result;
 
-            if(!result.Succeeded){
-               foreach(var error in result.Errors){
-                   ModelState.AddModelError("Password", error.Description);
-                   return View(model);
-               }
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("Password", error.Description);
+                    return View(model);
+                }
             }
             return RedirectToAction("Index", "Home");
         }
 
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Login()
+        {
+
+            return View("Login");
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]//Passes a value to http-only-cookie and the value is inserted into the form. If that value is not returned upon submission it fails.
+        public IActionResult Login(LoginViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("Login");
+            }
+
+            var signInResult = _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false).Result;
+            if (!signInResult.Succeeded)
+            {
+
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return View(model);
+
+            }
+            return RedirectToAction("Index", "Item");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Logout()
+        {
+            _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Home");
+
+        }
 
 
     }
